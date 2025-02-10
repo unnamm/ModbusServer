@@ -14,8 +14,6 @@ namespace UI
 {
     internal class App : Application
     {
-        private readonly MainWindow _mainView;
-        private readonly List<Type> _viewList = [];
         private readonly IServiceCollection _services;
         private readonly Dictionary<Type, Type> _viewPair = [];
 
@@ -24,30 +22,27 @@ namespace UI
             var builder = Host.CreateApplicationBuilder();
             _services = builder.Services;
 
-            #region host build
-            //other
+            //add view
+            _services.AddSingleton<MainWindow>();
 
-            //add tab view
-            AddView<MainWindow>();
+            //add view and viewmodel
 
-            //add tab view and viewmodel
-
-            #endregion
+            //add other
 
             var host = builder.Build();
-            Ioc.Default.ConfigureServices(host.Services); //setting default
-            _mainView = Ioc.Default.GetService<MainWindow>()!; //set mainview
+            Ioc.Default.ConfigureServices(host.Services);
 
-            SettingView();
+            AutoConnectViewAndViewModel();
+            SetDefaultResource();
 
-            Startup += (x, y) => _mainView.Show();
+            Startup += (x, y) => Ioc.Default.GetService<MainWindow>()!.Show(); //mainwindow show
         }
 
         /// <summary>
         /// auto connect view and viewmodel
         /// </summary>
         /// <exception cref="Exception"></exception>
-        private void SettingView()
+        private void AutoConnectViewAndViewModel()
         {
             foreach (var pair in _viewPair)
             {
@@ -73,14 +68,16 @@ namespace UI
             _viewPair.Add(typeof(View), typeof(ViewModel));
         }
 
-        /// <summary>
-        /// add only view
-        /// </summary>
-        /// <typeparam name="View"></typeparam>
-        private void AddView<View>() where View : ContentControl
+        private void SetDefaultResource()
         {
-            _services.AddSingleton<View>();
-            _viewList.Add(typeof(View));
+            ResourceDictionary resourceDictionary = [];
+            ResourceDictionary materialDesignDefaults = new()
+            {
+                Source = new Uri("pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml")
+            };
+            resourceDictionary.MergedDictionaries.Add(materialDesignDefaults);
+
+            base.Resources = resourceDictionary;
         }
     }
 }

@@ -13,7 +13,7 @@ namespace UI
         [STAThread]
         private static void Main()
         {
-            new App().Run();
+            new App().Run(); //run App.Startup event
         }
     }
 }
